@@ -57,7 +57,6 @@ int main()
     pthread_join(threads[1], NULL);
 
     return 0;
-    
 }
 
 void *agmalTerbangun( void *ptr ){
