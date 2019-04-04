@@ -3,6 +3,8 @@
 #include <pthread.h> //library thread
 
 void *fact( void *ptr );
+int data[100];
+
 
 int main(int argc, char** argv)
 {
@@ -17,6 +19,8 @@ int main(int argc, char** argv)
     for(i = 0; i < argc - 1; i++)
        pthread_join(threads[i], NULL);
     
+    for(i = 0; i < 100; i++)
+        if(data[i] != 0) printf("%d! = %d\n", i, data[i]);
 }
 
 void *fact( void *ptr )
@@ -27,5 +31,7 @@ void *fact( void *ptr )
 
     for(i = 1; i <= arg; i++) res *= i;
 
-    printf("%d! = %d\n", arg, res);
+    data[arg] = res;
+    // index[in] = arg;
+    // in++;
 }
