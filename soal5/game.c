@@ -12,7 +12,6 @@
 #define BattleMode 1
 #define ShopMode 2
 
-void changemode(int dir);
 int kbhit(void);
 void *hungerStatusDecrease( void *ptr );
 void *hygieneStatusDecrease( void *ptr );
