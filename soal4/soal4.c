@@ -5,6 +5,7 @@
 
 pthread_t tid[2];
 
+//membuat folder
 void *makeDir1(void *arg){
     system("mkdir -p /home/hp/Documents/FolderProses1");
 }
@@ -12,6 +13,7 @@ void *makeDir2(void *arg){
     system("mkdir -p /home/hp/Documents/FolderProses2");
 }
 
+//simpan daftar proses
 void *saveFile1(void *arg){
     system("ps -aux --no-headers | head > /home/hp/Documents/FolderProses1/SimpanProses1.txt");
 }
@@ -19,6 +21,7 @@ void *saveFile2(void *arg){
     system("ps -aux --no-headers | head > /home/hp/Documents/FolderProses2/SimpanProses2.txt");
 }
 
+//kompres file
 void *compressFile1(void *arg){
     system("cd /home/hp/Documents/FolderProses1/ && zip -rq /home/hp/Documents/FolderProses1/KompresProses1.zip SimpanProses1.txt && rm SimpanProses1.txt");
 }
@@ -26,6 +29,7 @@ void *compressFile2(void *arg){
     system("cd /home/hp/Documents/FolderProses2/ && zip -rq /home/hp/Documents/FolderProses2/KompresProses2.zip SimpanProses2.txt && rm SimpanProses2.txt");
 }
 
+//jalankan thread (ekstrak file)
 void *extractFile1(void *arg){
     system("unzip -q /home/hp/Documents/FolderProses1/KompresProses1.zip -d /home/hp/Documents/FolderProses1/");
 }
