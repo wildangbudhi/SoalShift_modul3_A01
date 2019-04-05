@@ -150,6 +150,154 @@ Terdapat 1 Client dan 2 Server (server-penjual dan server-pember)
     }
   ```
 
+**server-penjual**
+- Lakukan pembukaan server dengan PORT ```8080``` dengan antisipasi client yang terhubung lebih dari 1 client.
+  ```c
+  if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+        perror("socket failed");
+        exit(EXIT_FAILURE);
+    }
+      
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
+        perror("setsockopt");
+        exit(EXIT_FAILURE);
+    }
+
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons( PORT );
+      
+    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address))<0) {
+        perror("bind failed");
+        exit(EXIT_FAILURE);
+    }
+
+    if (listen(server_fd, 3) < 0) {
+        perror("listen");
+        exit(EXIT_FAILURE);
+    }
+
+    // max client connected 1
+    if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) > 1) {
+        perror("More one Client Connected");
+        exit(EXIT_FAILURE);
+    }
+  ```
+
+- Lakukan Shared Memory
+  ```c
+  key_t key = 1234;
+
+  int shmid = shmget(key, sizeof(int), IPC_CREAT | 0666);
+  stock = shmat(shmid, NULL, 0);
+  ```
+
+- Buat 2 thread pertama digunakan untuk menampilkan jumlah stock ( fungsi ```void *cekStock( void *ptr )``` ), kedua digunakan untuk menambahkan stock ( fungsi ```void *runCommand( void *ptr )``` ).
+  ```c
+  pthread_t threads[2];
+
+  pthread_create(&threads[0], NULL, cekStock, NULL);
+  pthread_create(&threads[1], NULL, runCommand, NULL);
+
+  pthread_join(threads[0], NULL);
+  pthread_join(threads[1], NULL);
+  ```
+
+- ```void *runCommand( void *ptr )```
+  ```c
+  void *runCommand( void *ptr ){
+    char buffer[1024];
+
+    while(1){
+        read( new_socket , buffer, 1024);
+        if(!strcmp(buffer, "tambah"))
+            *stock = *stock + 1;
+    }
+  }
+  ```
+
+- ```void *cekStock( void *ptr )```
+  ```c
+  void *cekStock( void *ptr ){
+
+    while(1){
+        cekStockTimerStart = 1;
+        sleep(5);
+        printf("Stok : %d\n", *stock);
+        cekStockTimerStart = 0;
+    }  
+  }
+  ```
+
+**server-pembeli**
+- Lakukan pembukaan server dengan PORT ```8000``` dengan antisipasi client yang terhubung lebih dari 1 client.
+  ```c
+  if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+        perror("socket failed");
+        exit(EXIT_FAILURE);
+    }
+      
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
+        perror("setsockopt");
+        exit(EXIT_FAILURE);
+    }
+
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons( PORT );
+      
+    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address))<0) {
+        perror("bind failed");
+        exit(EXIT_FAILURE);
+    }
+
+    if (listen(server_fd, 3) < 0) {
+        perror("listen");
+        exit(EXIT_FAILURE);
+    }
+
+    // max client connected 1
+    if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) > 1) {
+        perror("More one Client Connected");
+        exit(EXIT_FAILURE);
+    }
+  ```
+
+- Lakukan Shared Memory
+  ```c
+  key_t key = 1234;
+
+  int shmid = shmget(key, sizeof(int), IPC_CREAT | 0666);
+  stock = shmat(shmid, NULL, 0);
+  ```
+
+- Buat sebuah thread digunakan untuk mengurangi stock
+  ```c
+  pthread_t threads;
+  pthread_create(&threads, NULL, runCommand, NULL);
+  pthread_join(threads, NULL);
+  ```
+- ```void *runCommand( void *ptr )```
+  ```c
+  void *runCommand( void *ptr ){
+
+      char buffer[1024], *massage;
+
+      while(1){
+          read( new_socket , buffer, 1024);
+
+          if(!strcmp(buffer, "beli")){
+              if(*stock > 0){
+                  *stock = *stock - 1;
+                  massage = "transaksi berhasil";
+              }
+              else massage = "transaksi gagal";
+
+              send(new_socket , massage , strlen(massage) , 0 );
+          }
+      }
+  }
+  ```
 
 
 ## NO3
