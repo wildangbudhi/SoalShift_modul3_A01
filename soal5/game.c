@@ -45,8 +45,7 @@ int main(){
     pthread_create(&thread, NULL, hungerStatusDecrease, NULL);
     pthread_create(&thread, NULL, hygieneStatusDecrease, NULL);
     pthread_create(&thread, NULL, healthStatusIncrease, NULL);
-    
-    changemode(1);
+
     while(1){
         if(hungerStatus <= 0)
             printf("%s died starving\n", monsName);
@@ -118,20 +117,6 @@ int main(){
         }
     }
 
-}
-
-void changemode(int dir){
-  static struct termios oldt, newt;
- 
-  if ( dir == 1 )
-  {
-    tcgetattr( STDIN_FILENO, &oldt);
-    newt = oldt;
-    newt.c_lflag &= ~( ICANON | ECHO );
-    tcsetattr( STDIN_FILENO, TCSANOW, &newt);
-  }
-  else
-    tcsetattr( STDIN_FILENO, TCSANOW, &oldt);
 }
 
 
