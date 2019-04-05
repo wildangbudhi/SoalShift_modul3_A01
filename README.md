@@ -50,7 +50,6 @@ Contoh:
       if(data[i] != 0) printf("%d! = %d\n", i, data[i]);
   ```
 
-
 ## NO2
 Pada suatu hari ada orang yang ingin berjualan 1 jenis barang secara private, dia memintamu membuat program C dengan spesifikasi sebagai berikut:
 - Terdapat 2 server: server penjual dan server pembeli
