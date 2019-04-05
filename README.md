@@ -196,6 +196,7 @@ Dengan Syarat :
 ### PENJELASAN:
 1. Pertama, kita akan membuat sebuah thread yang nantinya akan menghasilkan folder ``FolderProses1`` dan ``FolderProses2`` apabila dijalankan.
 ```c
+//membuat folder
 void *makeDir1(void *arg){
     system("mkdir -p /home/hp/Documents/FolderProses1");
 }
@@ -205,6 +206,7 @@ void *makeDir2(void *arg){
 ```
 2. Untuk menyimpan data dari proses, kita akan membuat sebuah thread juga.
 ```c
+//simpan data proses
 void *saveFile1(void *arg){
     system("ps -aux --no-headers | head > /home/hp/Documents/FolderProses1/SimpanProses1.txt");
 }
@@ -214,6 +216,7 @@ void *saveFile2(void *arg){
 ```
 3. Ketiga, membuat thread seperti di bawah ini yang berfungsi untuk mengkompres file.
 ```c
+//kompres file
 void *compressFile1(void *arg){
     system("cd /home/hp/Documents/FolderProses1/ && zip -rq /home/hp/Documents/FolderProses1/KompresProses1.zip SimpanProses1.txt && rm SimpanProses1.txt");
 }
@@ -223,6 +226,7 @@ void *compressFile2(void *arg){
 ```
 4. Lalu, membuat thread yang nantinya bisa mengekstrak file apabila dijalankan.
 ```c
+//ekstrak file
 void *extractFile1(void *arg){
     system("unzip -q /home/hp/Documents/FolderProses1/KompresProses1.zip -d /home/hp/Documents/FolderProses1/");
 }
