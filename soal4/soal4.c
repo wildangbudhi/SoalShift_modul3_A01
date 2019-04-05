@@ -29,7 +29,7 @@ void *compressFile2(void *arg){
     system("cd /home/hp/Documents/FolderProses2/ && zip -rq /home/hp/Documents/FolderProses2/KompresProses2.zip SimpanProses2.txt && rm SimpanProses2.txt");
 }
 
-//jalankan thread (ekstrak file)
+//ekstrak file
 void *extractFile1(void *arg){
     system("unzip -q /home/hp/Documents/FolderProses1/KompresProses1.zip -d /home/hp/Documents/FolderProses1/");
 }
