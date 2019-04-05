@@ -530,6 +530,30 @@ Spesifikasi program:
 
 - Pastikan terminal hanya mendisplay status detik ini sesuai scene terkait (hint: menggunakan system(“clear”))
 
-### JAWAB:
+### JAWAB: [Soal 5](/soal5/)
 
 ### PENJELASAN:
+Terdapat 2 program pertama game itu sendiri yang kedua adalah shop
+
+**game**
+- Menggunakan 4 thread :
+  - untuk display tiap detik
+  - untuk mengurangi hungerStatus
+  - untuk mengurangi hygieneStatus
+  - untuk menaikkan healthStatus
+
+- Jalannya Program :
+  - Minta nama monster kepada user.
+  - Buat thread untuk display.
+  - Buat thread untuk hungerStatus.
+  - Buat thread untuk hygieneStatus.
+  - Buat thread untuk healthStatus.
+  - Buat thread untuk meng-handle aksi user (main thread).
+
+**shop**
+- Menggunakan 1 thread :
+  - untuk display tiap detik
+
+- Jalannya Program :
+  - Buat thread untuk display.
+  - Buat thread untuk meng-handle aksi user.
