@@ -16,7 +16,7 @@ Contoh:
 	4! = 24
 	5! = 120
 
-### JAWAB:
+### JAWAB: [Soal 1](/soal1/)
 
 ### PENJELASAN:
 
