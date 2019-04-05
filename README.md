@@ -19,6 +19,36 @@ Contoh:
 ### JAWAB: [Soal 1](/soal1/)
 
 ### PENJELASAN:
+- Mengambil argument dalam CLI dengan menambahkan parameter pada fungsi main ```argc``` untuk jumlah argument sedangkan ```char** argv``` merupakan array of string (dalam c array of array of char) sebagai berikut:
+  ```c
+  int main(int argc, char** argv);
+  ```
+- Buat threads sebanyak ```argc``` yang menjalankan fungsi ```void *fact( void *ptr );``` untuk menghitung faktorial dan hasil diletakkan pada array ```data``` pada index sesuai dengan inputan dan mengambil data dari string argumen mulai dari index ke 1 karena index pertama merupakan nama filenya lalu kita ambil sebagai char dengan menyambil index ke 0 dari string tersebut lalu dilakukan pengurangan terhadap ```'0'``` untuk mendapatkan nilai dalam tipe Int.
+  ```c
+  for(i = 0; i < argc - 1; i++){
+      const int arg = (int) argv[i+1][0] - '0';
+      pthread_create(&threads[i], NULL, fact, (void *) arg);
+  }
+  ```
+- Fungsi ```void *fact( void *ptr );```
+  ```c
+  void *fact( void *ptr )
+  {
+      int i, res, arg;
+      arg = (int) ptr;
+      res = 1;
+
+      for(i = 1; i <= arg; i++) res *= i;
+
+      data[arg] = res;
+  }
+  ```
+
+- Dikarenakan bisa dipastikan bahwa array ```data``` pasti berurutan secara ascending maka untuk mencetak isinya tinggal kita lakukan traversing untuk mendapatkan data yang tidak ```0``` dikarenakan tidak ada hasil Faktorial yang menghasilkan ```0```.
+  ```c
+  for(i = 0; i < 100; i++)
+      if(data[i] != 0) printf("%d! = %d\n", i, data[i]);
+  ```
 
 
 ## NO2
