@@ -191,10 +191,46 @@ Dengan Syarat :
 - Boleh menggunakan system
 
 
-### JAWAB:
+### JAWAB: [Soal 4](/soal4/)
 
 ### PENJELASAN:
-
+1. Pertama, kita akan membuat sebuah thread yang nantinya akan menghasilkan folder ``FolderProses1`` dan ``FolderProses2`` apabila dijalankan.
+```c
+void *makeDir1(void *arg){
+    system("mkdir -p /home/hp/Documents/FolderProses1");
+}
+void *makeDir2(void *arg){
+    system("mkdir -p /home/hp/Documents/FolderProses2");
+}
+```
+2. Untuk menyimpan data dari proses, kita akan membuat sebuah thread juga.
+```c
+void *saveFile1(void *arg){
+    system("ps -aux --no-headers | head > /home/hp/Documents/FolderProses1/SimpanProses1.txt");
+}
+void *saveFile2(void *arg){
+    system("ps -aux --no-headers | head > /home/hp/Documents/FolderProses2/SimpanProses2.txt");
+}
+```
+3. Ketiga, membuat thread seperti di bawah ini yang berfungsi untuk mengkompres file.
+```c
+void *compressFile1(void *arg){
+    system("cd /home/hp/Documents/FolderProses1/ && zip -rq /home/hp/Documents/FolderProses1/KompresProses1.zip SimpanProses1.txt && rm SimpanProses1.txt");
+}
+void *compressFile2(void *arg){
+    system("cd /home/hp/Documents/FolderProses2/ && zip -rq /home/hp/Documents/FolderProses2/KompresProses2.zip SimpanProses2.txt && rm SimpanProses2.txt");
+}
+```
+4. Lalu, membuat thread yang nantinya bisa mengekstrak file apabila dijalankan.
+```c
+void *extractFile1(void *arg){
+    system("unzip -q /home/hp/Documents/FolderProses1/KompresProses1.zip -d /home/hp/Documents/FolderProses1/");
+}
+void *extractFile2(void *arg){
+    system("unzip -q /home/hp/Documents/FolderProses2/KompresProses2.zip -d /home/hp/Documents/FolderProses2/");
+}
+```
+Perlu diperhatikan bahwa kita harus menunggu selama 15 detik untuk mengekstrak file, kemudian untuk fungsi ``pthread_join(tid[0], NULL);`` harus selalu dipanggil agar perintah dapat dieksekusi oleh program secara bersamaan.
 
 ## NO5
 Angga, adik Jiwang akan berulang tahun yang ke sembilan pada tanggal 6 April besok. Karena lupa menabung, Jiwang tidak mempunyai uang sepeserpun untuk membelikan Angga kado. Kamu sebagai sahabat Jiwang ingin membantu Jiwang membahagiakan adiknya sehingga kamu menawarkan bantuan membuatkan permainan komputer sederhana menggunakan program C. Jiwang sangat menyukai idemu tersebut. Berikut permainan yang Jiwang minta. 
