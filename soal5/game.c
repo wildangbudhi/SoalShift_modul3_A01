@@ -93,6 +93,7 @@ int main(){
 
                 else if(enemyHealthStatus <= 0){
                     printf("%s won the battle\n", monsName);
+                    enemyHealthStatus = 100;
                     sleep(0.5);
                     mode = StandbyMode;
                 }

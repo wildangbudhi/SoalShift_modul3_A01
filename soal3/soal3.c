@@ -25,22 +25,22 @@ int main()
             printf("Agmal WakeUp_Status = %d\nIraj Spirit_Status = %d\n", WakeUp_Status, Spirit_Status);
 
         if(!strcmp(input, "Agmal Ayo Bangun")){
-            if(AgmalBangunCounter == 2 && !AgmalDisabled)
-                pthread_create(&threads[0], NULL, disableAgmal, NULL);
+            if(IrajTidurCounter == 2 && !IrajDisabled)
+                pthread_create(&threads[0], NULL, disableIraj, NULL);
 
             if(!AgmalDisabled){
                 WakeUp_Status += 15;
-                AgmalBangunCounter++;
+                IrajTidurCounter++;
             }
         }
             
         if(!strcmp(input, "Iraj Ayo Tidur")){
-            if(IrajTidurCounter == 2 && !IrajTidurCounter)
-                pthread_create(&threads[1], NULL, disableIraj, NULL);
+            if(AgmalBangunCounter == 2 && !AgmalDisabled)
+                pthread_create(&threads[1], NULL, disableAgmal, NULL);
 
             if(!IrajDisabled){
                 Spirit_Status -= 30;
-                IrajTidurCounter++;
+                AgmalBangunCounter++;
             }
         }
             
