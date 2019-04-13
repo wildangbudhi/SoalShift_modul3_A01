@@ -16,10 +16,39 @@ Contoh:
 	4! = 24
 	5! = 120
 
-### JAWAB:
+### JAWAB: [Soal 1](/soal1/)
 
 ### PENJELASAN:
+- Mengambil argument dalam CLI dengan menambahkan parameter pada fungsi main ```argc``` untuk jumlah argument sedangkan ```char** argv``` merupakan array of string (dalam c array of array of char) sebagai berikut:
+  ```c
+  int main(int argc, char** argv);
+  ```
+- Buat threads sebanyak ```argc``` yang menjalankan fungsi ```void *fact( void *ptr );``` untuk menghitung faktorial dan hasil diletakkan pada array ```data``` pada index sesuai dengan inputan dan mengambil data dari string argumen mulai dari index ke 1 karena index pertama merupakan nama filenya lalu kita ambil sebagai char dengan menyambil index ke 0 dari string tersebut lalu dilakukan pengurangan terhadap ```'0'``` untuk mendapatkan nilai dalam tipe Int.
+  ```c
+  for(i = 0; i < argc - 1; i++){
+      const int arg = (int) argv[i+1][0] - '0';
+      pthread_create(&threads[i], NULL, fact, (void *) arg);
+  }
+  ```
+- Fungsi ```void *fact( void *ptr );```
+  ```c
+  void *fact( void *ptr )
+  {
+      int i, res, arg;
+      arg = (int) ptr;
+      res = 1;
 
+      for(i = 1; i <= arg; i++) res *= i;
+
+      data[arg] = res;
+  }
+  ```
+
+- Dikarenakan bisa dipastikan bahwa array ```data``` pasti berurutan secara ascending maka untuk mencetak isinya tinggal kita lakukan traversing untuk mendapatkan data yang tidak ```0``` dikarenakan tidak ada hasil Faktorial yang menghasilkan ```0```.
+  ```c
+  for(i = 0; i < 100; i++)
+      if(data[i] != 0) printf("%d! = %d\n", i, data[i]);
+  ```
 
 ## NO2
 Pada suatu hari ada orang yang ingin berjualan 1 jenis barang secara private, dia memintamu membuat program C dengan spesifikasi sebagai berikut:
@@ -37,9 +66,238 @@ Pada suatu hari ada orang yang ingin berjualan 1 jenis barang secara private, di
 - **Menggunakan thread, socket, shared memory**
 
 
-### JAWAB:
+### JAWAB: [Soal 2](/soal2/)
 
 ### PENJELASAN:
+Terdapat 1 Client dan 2 Server (server-penjual dan server-pember)
+
+**Client**
+- Terdapat 2 fungsi yang mirip yaitu untuk menghubungkan ke server
+  ```c
+  // server-penjual
+
+  int tambah(){
+    struct sockaddr_in address;
+    int valread;
+    struct sockaddr_in serv_addr;
+    if ((sockTambah = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        printf("\n Socket creation error \n");
+        return -1;
+    }
+  
+    memset(&serv_addr, '0', sizeof(serv_addr));
+  
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(PORT_PENJUAL);
+      
+    if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)<=0) {
+        printf("\nInvalid address/ Address not supported \n");
+        return -1;
+    }
+  
+    if (connect(sockTambah, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+        printf("\nConnection Failed \n");
+        return -1;
+    }
+
+  }
+  ```
+  ```c
+  // server-pembeli
+
+  int beli(){
+    struct sockaddr_in address;
+    int valread;
+    struct sockaddr_in serv_addr;
+    if ((sockBeli = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        printf("\n Socket creation error \n");
+        return -1;
+    }
+  
+    memset(&serv_addr, '0', sizeof(serv_addr));
+  
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(PORT_PEMBELI);
+      
+    if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)<=0) {
+        printf("\nInvalid address/ Address not supported \n");
+        return -1;
+    }
+  
+    if (connect(sockBeli, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+        printf("\nConnection Failed \n");
+        return -1;
+    }
+
+  }
+  ```
+- Lakukan pengiriman ke server jika sesuai
+  ```c
+  while(1){
+      gets(massage);
+
+      if(!strcmp(massage, "tambah")){
+          send(sockTambah , massage , strlen(massage) , 0 );
+          printf("Tambah message sent\n");
+      }
+      
+      if(!strcmp(massage, "beli")){
+          send(sockBeli , massage , strlen(massage) , 0 );
+          printf("Beli message sent\n");
+          read( sockBeli , buffer, 1024);
+          printf("%s\n",buffer );
+      }
+    }
+  ```
+
+**server-penjual**
+- Lakukan pembukaan server dengan PORT ```8080``` dengan antisipasi client yang terhubung lebih dari 1 client.
+  ```c
+  if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+        perror("socket failed");
+        exit(EXIT_FAILURE);
+    }
+      
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
+        perror("setsockopt");
+        exit(EXIT_FAILURE);
+    }
+
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons( PORT );
+      
+    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address))<0) {
+        perror("bind failed");
+        exit(EXIT_FAILURE);
+    }
+
+    if (listen(server_fd, 3) < 0) {
+        perror("listen");
+        exit(EXIT_FAILURE);
+    }
+
+    // max client connected 1
+    if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) > 1) {
+        perror("More one Client Connected");
+        exit(EXIT_FAILURE);
+    }
+  ```
+
+- Lakukan Shared Memory
+  ```c
+  key_t key = 1234;
+
+  int shmid = shmget(key, sizeof(int), IPC_CREAT | 0666);
+  stock = shmat(shmid, NULL, 0);
+  ```
+
+- Buat 2 thread pertama digunakan untuk menampilkan jumlah stock ( fungsi ```void *cekStock( void *ptr )``` ), kedua digunakan untuk menambahkan stock ( fungsi ```void *runCommand( void *ptr )``` ).
+  ```c
+  pthread_t threads[2];
+
+  pthread_create(&threads[0], NULL, cekStock, NULL);
+  pthread_create(&threads[1], NULL, runCommand, NULL);
+
+  pthread_join(threads[0], NULL);
+  pthread_join(threads[1], NULL);
+  ```
+
+- ```void *runCommand( void *ptr )```
+  ```c
+  void *runCommand( void *ptr ){
+    char buffer[1024];
+
+    while(1){
+        read( new_socket , buffer, 1024);
+        if(!strcmp(buffer, "tambah"))
+            *stock = *stock + 1;
+    }
+  }
+  ```
+
+- ```void *cekStock( void *ptr )```
+  ```c
+  void *cekStock( void *ptr ){
+
+    while(1){
+        cekStockTimerStart = 1;
+        sleep(5);
+        printf("Stok : %d\n", *stock);
+        cekStockTimerStart = 0;
+    }  
+  }
+  ```
+
+**server-pembeli**
+- Lakukan pembukaan server dengan PORT ```8000``` dengan antisipasi client yang terhubung lebih dari 1 client.
+  ```c
+  if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+        perror("socket failed");
+        exit(EXIT_FAILURE);
+    }
+      
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
+        perror("setsockopt");
+        exit(EXIT_FAILURE);
+    }
+
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons( PORT );
+      
+    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address))<0) {
+        perror("bind failed");
+        exit(EXIT_FAILURE);
+    }
+
+    if (listen(server_fd, 3) < 0) {
+        perror("listen");
+        exit(EXIT_FAILURE);
+    }
+
+    // max client connected 1
+    if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) > 1) {
+        perror("More one Client Connected");
+        exit(EXIT_FAILURE);
+    }
+  ```
+
+- Lakukan Shared Memory
+  ```c
+  key_t key = 1234;
+
+  int shmid = shmget(key, sizeof(int), IPC_CREAT | 0666);
+  stock = shmat(shmid, NULL, 0);
+  ```
+
+- Buat sebuah thread digunakan untuk mengurangi stock
+  ```c
+  pthread_t threads;
+  pthread_create(&threads, NULL, runCommand, NULL);
+  pthread_join(threads, NULL);
+  ```
+- ```void *runCommand( void *ptr )```
+  ```c
+  void *runCommand( void *ptr ){
+
+      char buffer[1024], *massage;
+
+      while(1){
+          read( new_socket , buffer, 1024);
+
+          if(!strcmp(buffer, "beli")){
+              if(*stock > 0){
+                  *stock = *stock - 1;
+                  massage = "transaksi berhasil";
+              }
+              else massage = "transaksi gagal";
+
+              send(new_socket , massage , strlen(massage) , 0 );
+          }
+      }
+  }
+  ```
 
 
 ## NO3
@@ -65,9 +323,94 @@ Agmal dan Iraj merupakan 2 sahabat yang sedang kuliah dan hidup satu kostan, say
   - **Syarat Menggunakan Lebih dari 1 Thread**
 
 
-### JAWAB:
+### JAWAB: [Soal 3](/soal3/)
 
 ### PENJELASAN:
+- Menggunakan 2 thread bergantian
+- Yang pertama digunakan untuk disable fungsi
+  ```c
+  pirit_Status = 100;
+
+    pthread_t threads[2];
+    char input[20];
+
+    do{
+      gets(input);
+
+      if(!strcmp(input, "All Status"))
+          printf("Agmal WakeUp_Status = %d\nIraj Spirit_Status = %d\n", WakeUp_Status, Spirit_Status);
+
+      if(!strcmp(input, "Agmal Ayo Bangun")){
+          if(AgmalBangunCounter == 2 && !AgmalDisabled)
+              pthread_create(&threads[0], NULL, disableAgmal, NULL);
+
+          if(!AgmalDisabled){
+              WakeUp_Status += 15;
+              AgmalBangunCounter++;
+          }
+      }
+          
+      if(!strcmp(input, "Iraj Ayo Tidur")){
+          if(IrajTidurCounter == 2 && !IrajTidurCounter)
+              pthread_create(&threads[1], NULL, disableIraj, NULL);
+
+          if(!IrajDisabled){
+              Spirit_Status -= 30;
+              IrajTidurCounter++;
+          }
+      }
+          
+
+  }while(WakeUp_Status < 100 && Spirit_Status > 0);
+
+  pthread_join(threads[0], NULL);
+  pthread_join(threads[1], NULL);
+  ```
+
+- Yang ke dua digunakan untuk mengecek apakah Iraj tertidur atau Agmal terbangun
+  ```c
+  pthread_create(&threads[0], NULL, agmalTerbangun, NULL);
+  pthread_create(&threads[1], NULL, irajTertidur, NULL);
+
+  pthread_join(threads[0], NULL);
+  pthread_join(threads[1], NULL);
+  ```
+
+- ```void *agmalTerbangun( void *ptr )```
+  ```c
+  void *agmalTerbangun( void *ptr ){
+      if(WakeUp_Status >= 100)
+          printf("Agmal Terbangun,mereka bangun pagi dan berolahraga\n");
+  }
+  ```
+
+- ```void *irajTertidur( void *ptr )```
+  ```c
+  void *irajTertidur( void *ptr ){
+    if(Spirit_Status <= 0)
+        printf("Iraj ikut tidur, dan bangun kesiangan bersama Agmal\n");
+  }
+  ```
+- ```void *disableAgmal( void *ptr )```
+  ```c
+  void *disableAgmal( void *ptr ){
+      printf("Agmal Ayo Bangun disabled 10 s\n");
+      AgmalDisabled = 1;
+      sleep(10);
+      AgmalDisabled = 0;
+      AgmalBangunCounter = 0;
+  }
+  ```
+- ```void *disableIraj( void *ptr )```
+  ```c
+  void *disableIraj( void *ptr ){
+      printf("Fitur Iraj Ayo Tidur disabled 10 s\n");
+      IrajDisabled = 1;
+      sleep(10);
+      AgmalDisabled = 0;
+      IrajTidurCounter = 0;
+  }
+  ```
 
 
 ## NO4
@@ -81,10 +424,50 @@ Dengan Syarat :
 - Boleh menggunakan system
 
 
-### JAWAB:
+### JAWAB: [Soal 4](/soal4/)
 
 ### PENJELASAN:
-
+1. Pertama, kita akan membuat sebuah thread yang nantinya akan menghasilkan folder ``FolderProses1`` dan ``FolderProses2`` apabila dijalankan.
+```c
+//membuat folder
+void *makeDir1(void *arg){
+    system("mkdir -p /home/hp/Documents/FolderProses1");
+}
+void *makeDir2(void *arg){
+    system("mkdir -p /home/hp/Documents/FolderProses2");
+}
+```
+2. Untuk menyimpan data dari proses, kita akan membuat sebuah thread juga.
+```c
+//simpan data proses
+void *saveFile1(void *arg){
+    system("ps -aux --no-headers | head > /home/hp/Documents/FolderProses1/SimpanProses1.txt");
+}
+void *saveFile2(void *arg){
+    system("ps -aux --no-headers | head > /home/hp/Documents/FolderProses2/SimpanProses2.txt");
+}
+```
+3. Ketiga, membuat thread seperti di bawah ini yang berfungsi untuk mengkompres file.
+```c
+//kompres file
+void *compressFile1(void *arg){
+    system("cd /home/hp/Documents/FolderProses1/ && zip -rq /home/hp/Documents/FolderProses1/KompresProses1.zip SimpanProses1.txt && rm SimpanProses1.txt");
+}
+void *compressFile2(void *arg){
+    system("cd /home/hp/Documents/FolderProses2/ && zip -rq /home/hp/Documents/FolderProses2/KompresProses2.zip SimpanProses2.txt && rm SimpanProses2.txt");
+}
+```
+4. Lalu, membuat thread yang nantinya bisa mengekstrak file apabila dijalankan.
+```c
+//ekstrak file
+void *extractFile1(void *arg){
+    system("unzip -q /home/hp/Documents/FolderProses1/KompresProses1.zip -d /home/hp/Documents/FolderProses1/");
+}
+void *extractFile2(void *arg){
+    system("unzip -q /home/hp/Documents/FolderProses2/KompresProses2.zip -d /home/hp/Documents/FolderProses2/");
+}
+```
+Perlu diperhatikan bahwa kita harus menunggu selama 15 detik untuk mengekstrak file, kemudian untuk fungsi ``pthread_join(tid[0], NULL);`` harus selalu dipanggil agar perintah dapat dieksekusi oleh program secara bersamaan.
 
 ## NO5
 Angga, adik Jiwang akan berulang tahun yang ke sembilan pada tanggal 6 April besok. Karena lupa menabung, Jiwang tidak mempunyai uang sepeserpun untuk membelikan Angga kado. Kamu sebagai sahabat Jiwang ingin membantu Jiwang membahagiakan adiknya sehingga kamu menawarkan bantuan membuatkan permainan komputer sederhana menggunakan program C. Jiwang sangat menyukai idemu tersebut. Berikut permainan yang Jiwang minta. 
@@ -147,6 +530,30 @@ Spesifikasi program:
 
 - Pastikan terminal hanya mendisplay status detik ini sesuai scene terkait (hint: menggunakan system(“clear”))
 
-### JAWAB:
+### JAWAB: [Soal 5](/soal5/)
 
 ### PENJELASAN:
+Terdapat 2 program pertama game itu sendiri yang kedua adalah shop
+
+**game**
+- Menggunakan 4 thread :
+  - untuk display tiap detik
+  - untuk mengurangi hungerStatus
+  - untuk mengurangi hygieneStatus
+  - untuk menaikkan healthStatus
+
+- Jalannya Program :
+  - Minta nama monster kepada user.
+  - Buat thread untuk display.
+  - Buat thread untuk hungerStatus.
+  - Buat thread untuk hygieneStatus.
+  - Buat thread untuk healthStatus.
+  - Buat thread untuk meng-handle aksi user (main thread).
+
+**shop**
+- Menggunakan 1 thread :
+  - untuk display tiap detik
+
+- Jalannya Program :
+  - Buat thread untuk display.
+  - Buat thread untuk meng-handle aksi user.

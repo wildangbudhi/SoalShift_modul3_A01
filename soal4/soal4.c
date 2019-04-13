@@ -1,71 +1,69 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <pthread.h>
-#include <unistd.h>
+#include<stdio.h>
+#include<stdlib.h>
+#include<unistd.h>
+#include<pthread.h> //library thread
 
-void bikinFile();
-void kompresFile();
-void ekstrakFile();
-void *thread(void *argv);
+pthread_t tid[2];
+
+//membuat folder
+void *makeDir1(void *arg){
+    system("mkdir -p /home/hp/Documents/FolderProses1");
+}
+void *makeDir2(void *arg){
+    system("mkdir -p /home/hp/Documents/FolderProses2");
+}
+
+//simpan daftar proses
+void *saveFile1(void *arg){
+    system("ps -aux --no-headers | head > /home/hp/Documents/FolderProses1/SimpanProses1.txt");
+}
+void *saveFile2(void *arg){
+    system("ps -aux --no-headers | head > /home/hp/Documents/FolderProses2/SimpanProses2.txt");
+}
+
+//kompres file
+void *compressFile1(void *arg){
+    system("cd /home/hp/Documents/FolderProses1/ && zip -rq /home/hp/Documents/FolderProses1/KompresProses1.zip SimpanProses1.txt && rm SimpanProses1.txt");
+}
+void *compressFile2(void *arg){
+    system("cd /home/hp/Documents/FolderProses2/ && zip -rq /home/hp/Documents/FolderProses2/KompresProses2.zip SimpanProses2.txt && rm SimpanProses2.txt");
+}
+
+//ekstrak file
+void *extractFile1(void *arg){
+    system("unzip -q /home/hp/Documents/FolderProses1/KompresProses1.zip -d /home/hp/Documents/FolderProses1/");
+}
+void *extractFile2(void *arg){
+    system("unzip -q /home/hp/Documents/FolderProses2/KompresProses2.zip -d /home/hp/Documents/FolderProses2/");
+}
 
 int main(){
-    int num_t = 2, i;
-    pthread_t tid[num_t];
-    
-    for (i=0; i<num_t; i++) {
-        pthread_create(&tid[i], NULL, thread, &i);
-    }
-    for (i=0; i<num_t; i++) {
-        pthread_join(tid[i], NULL);
-    }
-}
+    pthread_create(&tid[0], NULL, &makeDir1, NULL);
+    pthread_create(&tid[1], NULL, &makeDir2, NULL);
 
-void *thread(void *argv){
-    int *ptr = (int *) argv;
-    int id = *ptr + 1;
-    
-    bikinFile(id);
-    sleep(3);
-    kompresFile(id);
-    printf("istirahat 15 detik\n");
-    sleep(5);
-    ekstrakFile(id);
-    
-    return 0;
-}
+    pthread_join(tid[0], NULL);
+    pthread_join(tid[1], NULL);
 
-void ekstrakFile(int x){
-    char dir[30];
-    sprintf(dir, "~/Documents/FolderProses%d", x);
-    char filename[50];
-    sprintf(filename, "%s/SimpanProses%d.txt", dir, x);
-    char cmd[180];
-    sprintf(cmd, "unzip -j %s/KompresProses%d.zip -d %s", dir, x, dir);
-    system(cmd);
-}
+    pthread_create(&tid[0], NULL, &saveFile1, NULL);
+    pthread_create(&tid[1], NULL, &saveFile2, NULL);
 
-void kompresFile(int x){
-    char dir[30];
-    sprintf(dir, "~/Documents/FolderProses%d", x);
-    char filename[50];
-    sprintf(filename, "%s/SimpanProses%d.txt", dir, x);
-    char cmd[120];
-    sprintf(cmd, "zip -r %s/KompresProses%d.zip %s",dir, x, filename);
-    system(cmd);
-    char del[80];
-    sprintf(del, "rm %s", filename);
-    system(del);
-}
+    pthread_join(tid[0], NULL);
+    pthread_join(tid[1], NULL);
 
-void bikinFile(int x){
-    char filename[50];
-    char dir[30];
-    sprintf(dir, "~/Documents/FolderProses%d", x);
-    char cmd1[50];
-    sprintf(cmd1,"mkdir -p %s", dir);
-    system(cmd1);
-    sprintf(filename, "%s/SimpanProses%d.txt", dir, x);
-    char cmd2[70];
-    sprintf(cmd2, "ps -ax | head -10 > %s", filename);
-    system(cmd2);
+    pthread_create(&tid[0], NULL, &compressFile1, NULL);
+    pthread_create(&tid[1], NULL, &compressFile2, NULL);
+
+    pthread_join(tid[0], NULL);
+    pthread_join(tid[1], NULL);
+
+    printf("Menunggu 15 detik untuk mengekstrak kembali\n");
+    sleep(15); //waktu 15 detik
+
+    pthread_create(&tid[0], NULL, &extractFile1, NULL);
+    pthread_create(&tid[1], NULL, &extractFile2, NULL);
+
+    pthread_join(tid[0], NULL);
+    pthread_join(tid[1], NULL);
+
+ return 0;
 }
